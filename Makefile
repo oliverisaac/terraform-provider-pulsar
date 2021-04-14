@@ -18,11 +18,14 @@
 TEST?=./...
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 HOSTNAME=registry.terraform.io
-NAMESPACE?=apache
+NAMESPACE?=quantummetric
 PKG_NAME=pulsar
 BINARY=terraform-provider-${PKG_NAME}
 VERSION?=1.0.0
 OS_ARCH?=linux_amd64
+
+ATLANTIS_REPO?=${HOME}/git/dockerfiles-repos/atlantis
+ATLANTIS_FILE?=${ATLANTIS_REPO}/plugins/${HOSTNAME}/${NAMESPACE}/${PKG_NAME}/${VERSION}/linux_amd64/${BINARY}
 
 default: build
 
@@ -52,6 +55,10 @@ release: fmtcheck
 	GOOS=solaris GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_solaris_amd64
 	GOOS=windows GOARCH=386 go build -o ./bin/${BINARY}_${VERSION}_windows_386
 	GOOS=windows GOARCH=amd64 go build -o ./bin/${BINARY}_${VERSION}_windows_amd64
+
+atlantis:
+	GOOS=linux GOARCH=amd64 go build -o ${ATLANTIS_FILE}
+	cd ${ATLANTIS_REPO} && git add ${ATLANTIS_FILE} && git commit -m 'Updated pulsar plugin to ${VERSION}' -- "${ATLANTIS_FILE}"
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
